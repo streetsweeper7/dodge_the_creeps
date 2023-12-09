@@ -1,6 +1,12 @@
 extends Area2D
 
+# signals
+signal hit
+
+# exports
 @export var speed = 400 # How fast the player moves
+
+# public variables
 var screen_size # size of the game window
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -15,9 +21,9 @@ func _process(delta):
 		velocity.x += 1
 	if Input.is_action_pressed("move_left"):
 		velocity.x -= 1
-	if Input.is_action_pressed("moved_down"):
+	if Input.is_action_pressed("move_down"):
 		velocity.y += 1
-	if Input.is_action_pressed("moved_up"):
+	if Input.is_action_pressed("move_up"):
 		velocity.y -= 1
 	
 	if velocity.length() > 0:
@@ -35,7 +41,16 @@ func _process(delta):
 		# see the note below about boolean assignment
 		$AnimatedSprite2D.flip_h = velocity.x < 0
 	elif velocity.y != 0:
-		$AnimatedSprite2D.animated = "up"
+		$AnimatedSprite2D.animation = "up"
 		$AnimatedSprite2D.flip_v = velocity.y > 0
 	
-		
+func _on_body_entered(body):
+	hide() # Player disappears after being hit
+	hit.emit()
+	# Must be deferred as we can't change physics properties on a physical callback
+	$CollisionShape2D.set_deferred("disabled", true)
+
+func start(pos):
+	position = pos
+	show()
+	$CollisionShape2D.disabled = false
